@@ -19,13 +19,13 @@ class SmartWalker(Node):
             self.sensor_callback,
             10)
 
-        # --- Constants for Tuning ---
+        # Constants
         self.FORWARD_SPEED = 0.38
         self.ROTATION_SPEED = 0.6
         self.FRONT_THRESHOLD = 0.8
         self.SIDE_THRESHOLD = 0.6
 
-        # --- Robot Command Variables ---
+        # Robot Command Variables 
         self.target_linear_velocity = 0.0
         self.target_angular_velocity = 0.0
 
@@ -41,16 +41,12 @@ class SmartWalker(Node):
         front_view = msg.ranges[60:121]
         left_view = msg.ranges[121:171]
 
-        # Get min distances
         min_dist_right = min([r for r in right_view if not math.isinf(r)] or [100])
         min_dist_front = min([r for r in front_view if not math.isinf(r)] or [100])
         min_dist_left = min([r for r in left_view if not math.isinf(r)] or [100])
 
-        # --- Decision Logic ---
-        if min_dist_front < self.FRONT_THRESHOLD:
-            # Robot needs to turn — add randomness
-            self.get_logger().info(f'FRONT BLOCKED ({min_dist_front:.2f}m). Choosing turn...')
-            
+        # Decision Logic
+        if min_dist_front < self.FRONT_THRESHOLD:          
             # Pick turn direction based on space, but with some randomness
             if min_dist_left > min_dist_right:
                 base_turn = 1  # left
@@ -60,14 +56,12 @@ class SmartWalker(Node):
                 base_turn = random.choice([-1, 1])  # random if equal
 
             # Randomly invert turn 20% of the time to escape loops
-            if random.random() < 0.2:
+            if random.random() < 0.4:
                 base_turn *= -1
                 self.get_logger().info('Random direction flip for exploration.')
 
             # Randomize rotation speed slightly (but safe range)
             rot_speed = self.ROTATION_SPEED * random.uniform(0.8, 1.2)
-
-            # Assign command
             self.target_linear_velocity = 0.0
             self.target_angular_velocity = rot_speed * base_turn
 
@@ -84,19 +78,16 @@ class SmartWalker(Node):
         else:
             # Path clear — adjust speed based on distance to front obstacle
             if min_dist_front > 1.5:
-                self.target_linear_velocity = 0.5   # Far — fast
+                self.target_linear_velocity = 0.6   
             elif min_dist_front > 0.8:
-                self.target_linear_velocity = 0.35  # Medium distance — medium speed
+                self.target_linear_velocity = 0.35  
             elif min_dist_front > self.FRONT_THRESHOLD:
-                self.target_linear_velocity = 0.15  # Close — slow down
+                self.target_linear_velocity = 0.15  
             else:
-                self.target_linear_velocity = 0.0   # Very close — stop to turn
+                self.target_linear_velocity = 0.0  
             
             self.target_angular_velocity = 0.0
-            self.get_logger().info(f'Path clear. Moving forward at {self.target_linear_velocity:.2f} m/s.')
 
-
-        # Publish command immediately (no timer)
         self.publish_command()
 
     def publish_command(self):
