@@ -20,10 +20,10 @@ class SmartWalker(Node):
             10)
 
         # --- Constants for Tuning ---
-        self.FORWARD_SPEED = 0.25
+        self.FORWARD_SPEED = 0.38
         self.ROTATION_SPEED = 0.6
-        self.FRONT_THRESHOLD = 0.6
-        self.SIDE_THRESHOLD = 0.4
+        self.FRONT_THRESHOLD = 0.8
+        self.SIDE_THRESHOLD = 0.6
 
         # --- Robot Command Variables ---
         self.target_linear_velocity = 0.0
@@ -73,18 +73,28 @@ class SmartWalker(Node):
 
         elif min_dist_left < self.SIDE_THRESHOLD:
             self.get_logger().info(f'SIDE-LEFT BLOCKED ({min_dist_left:.2f}m). Steering right.')
-            self.target_linear_velocity = self.FORWARD_SPEED * 0.5
+            self.target_linear_velocity = self.FORWARD_SPEED * 0.4
             self.target_angular_velocity = -self.ROTATION_SPEED * 0.7
 
         elif min_dist_right < self.SIDE_THRESHOLD:
             self.get_logger().info(f'SIDE-RIGHT BLOCKED ({min_dist_right:.2f}m). Steering left.')
-            self.target_linear_velocity = self.FORWARD_SPEED * 0.5
+            self.target_linear_velocity = self.FORWARD_SPEED * 0.4
             self.target_angular_velocity = self.ROTATION_SPEED * 0.7
 
         else:
-            self.get_logger().info('Path clear. Moving forward.')
-            self.target_linear_velocity = self.FORWARD_SPEED
+            # Path clear — adjust speed based on distance to front obstacle
+            if min_dist_front > 1.5:
+                self.target_linear_velocity = 0.5   # Far — fast
+            elif min_dist_front > 0.8:
+                self.target_linear_velocity = 0.35  # Medium distance — medium speed
+            elif min_dist_front > self.FRONT_THRESHOLD:
+                self.target_linear_velocity = 0.15  # Close — slow down
+            else:
+                self.target_linear_velocity = 0.0   # Very close — stop to turn
+            
             self.target_angular_velocity = 0.0
+            self.get_logger().info(f'Path clear. Moving forward at {self.target_linear_velocity:.2f} m/s.')
+
 
         # Publish command immediately (no timer)
         self.publish_command()
