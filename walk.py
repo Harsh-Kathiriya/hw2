@@ -22,8 +22,8 @@ class SmartWalker(Node):
         # Constants
         self.FORWARD_SPEED = 0.38
         self.ROTATION_SPEED = 0.6
-        self.FRONT_THRESHOLD = 0.8
-        self.SIDE_THRESHOLD = 0.6
+        self.FRONT_THRESHOLD = 0.6
+        self.SIDE_THRESHOLD = 0.45
 
         # Robot Command Variables 
         self.target_linear_velocity = 0.0
