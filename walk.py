@@ -58,7 +58,6 @@ class SmartWalker(Node):
             # Randomly invert turn 20% of the time to escape loops
             if random.random() < 0.4:
                 base_turn *= -1
-                self.get_logger().info('Random direction flip for exploration.')
 
             # Randomize rotation speed slightly (but safe range)
             rot_speed = self.ROTATION_SPEED * random.uniform(0.8, 1.2)
@@ -66,12 +65,10 @@ class SmartWalker(Node):
             self.target_angular_velocity = rot_speed * base_turn
 
         elif min_dist_left < self.SIDE_THRESHOLD:
-            self.get_logger().info(f'SIDE-LEFT BLOCKED ({min_dist_left:.2f}m). Steering right.')
             self.target_linear_velocity = self.FORWARD_SPEED * 0.4
             self.target_angular_velocity = -self.ROTATION_SPEED * 0.7
 
         elif min_dist_right < self.SIDE_THRESHOLD:
-            self.get_logger().info(f'SIDE-RIGHT BLOCKED ({min_dist_right:.2f}m). Steering left.')
             self.target_linear_velocity = self.FORWARD_SPEED * 0.4
             self.target_angular_velocity = self.ROTATION_SPEED * 0.7
 
