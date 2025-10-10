@@ -100,10 +100,19 @@ class SmartWalker(Node):
             self.target_angular_velocity = self.ROTATION_SPEED * 0.7
 
         else:
-            # Path clear — go straight
-            self.get_logger().info('Path is clear. Moving forward.')
-            self.target_linear_velocity = self.FORWARD_SPEED
+            # Path clear — adjust speed based on distance to front obstacle
+            if min_dist_front > 2.0:
+                self.target_linear_velocity = 0.5   # Far — fast
+            elif min_dist_front > 1.0:
+                self.target_linear_velocity = 0.35  # Medium distance — medium speed
+            elif min_dist_front > self.FRONT_THRESHOLD:
+                self.target_linear_velocity = 0.15  # Close — slow down
+            else:
+                self.target_linear_velocity = 0.0   # Very close — stop to turn
+            
             self.target_angular_velocity = 0.0
+            self.get_logger().info(f'Path clear. Moving forward at {self.target_linear_velocity:.2f} m/s.')
+
 
         # Publish immediately (no timer)
         self.publish_command()
